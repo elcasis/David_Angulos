@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Configuración ideal para teléfonos móviles: evita zoom accidental y se adapta a pantallas con notch -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#311b92">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>¡Super Ángulos! 🎯 Juego Educativo</title>
+
+    <style>
+        /* ==========================================================================
+           VARIABLES DE DISEÑO Y PALETA DE COLORES INFANTIL / VIBRANTE
+           ========================================================================== */
+        :root {
+            --bg-top: #2e1065;
+            --bg-bottom: #1e3a8a;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --accent-yellow: #facc15;
+            --accent-orange: #fb923c;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-teal: #14b8a6;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --shadow-pop: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Reset general y bloqueo de selección de texto para experiencia tipo App nativa */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100dvh;
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: linear-gradient(145deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Contenedor principal adaptado al tamaño de un móvil (máx 480px en escritorio) */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100dvh;
+            padding: 12px 14px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ==========================================================================
+           PANTALLAS DE LA APLICACIÓN (INICIO, JUEGO, LABORATORIO, PODIO FINAL)
+           ========================================================================== */
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            flex: 1;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==========================================================================
+           CABECERA Y TÍTULOS
+           ========================================================================== */
+        .hero-header {
+            text-align: center;
+            color: white;
+            padding: 8px 0 4px;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            text-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* ==========================================================================
+           TARJETAS BLANCAS DE CONTENIDO
+           ========================================================================== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: 16px;
+            box-shadow: var(--shadow-pop);
+            border: 3px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           SELECTOR DE MODO (1 O 2 JUGADORES) Y RONDAS
+           ========================================================================== */
+        .mode-selector, .rounds-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .rounds-selector {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .toggle-btn {
+            background: #f1f5f9;
+            border: 3px solid #cbd5e1;
+            border-radius: var(--radius-lg);
+            padding: 10px 8px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toggle-btn span.emoji {
+            font-size: 1.5rem;
+        }
+
+        .toggle-btn.selected {
+            background: #ede9fe;
+            border-color: var(--accent-purple);
+            color: #6b21a8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #9333ea;
+        }
+
+        /* Entradas de nombres y avatares de los jugadores */
+        .players-setup {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .player-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 8px 10px;
+            border-radius: 14px;
+        }
+
+        .avatar-btn {
+            font-size: 1.65rem;
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 0 3px 0 #cbd5e1;
+        }
+
+        .avatar-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .player-name-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            outline: none;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* ==========================================================================
+           BOTONES PRINCIPALES DE ACCIÓN
+           ========================================================================== */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            padding: 15px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #15803d, 0 10px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #15803d;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 12px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #b45309;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #b45309;
+        }
+
+        /* ==========================================================================
+           BARRA SUPERIOR DEL JUEGO (MARCADOR, RONDA Y TURNO)
+           ========================================================================== */
+        .game-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: white;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            color: white;
+            border-radius: 12px;
+            padding: 6px 10px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .round-pill {
+            background: rgba(15, 23, 42, 0.65);
+            border: 2px solid var(--accent-yellow);
+            color: var(--accent-yellow);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            letter-spacing: 0.4px;
+        }
+
+        /* Marcadores de Jugador 1 y Jugador 2 */
+        .scoreboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .scoreboard.single-player {
+            grid-template-columns: 1fr;
+        }
+
+        .score-card {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 8px 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+
+        .score-card.active-turn {
+            background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);
+            color: #1e293b;
+            border-color: #ffffff;
+            transform: scale(1.03);
+            box-shadow: 0 6px 15px rgba(250, 204, 21, 0.4);
+        }
+
+        .score-player-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .score-points {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 1rem;
+        }
+
+        .score-card.active-turn .score-points {
+            background: #1e293b;
+            color: #facc15;
+        }
+
+        /* ==========================================================================
+           LIENZO DEL ÁNGULO (CANVAS INTERACTIVO Y ANIMADO)
+           ========================================================================== */
+        .canvas-wrapper {
+            background: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 10px;
+            box-shadow: var(--shadow-pop);
+            border: 4px solid #e2e8f0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .turn-banner {
+            width: 100%;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #475569;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        canvas#angleCanvas {
+            width: 100%;
+            max-width: 340px;
+            height: 215px;
+            background: radial-gradient(circle at center, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            touch-action: manipulation;
+        }
+
+        /* Mensaje flotante de pista o retroalimentación dentro del lienzo */
+        .feedback-banner {
+            min-height: 36px;
+            margin-top: 6px;
+            width: 100%;
+            border-radius: 12px;
+            padding: 6px 10px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #f1f5f9;
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+
+        .feedback-banner.correct {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #22c55e;
+        }
+
+        .feedback-banner.wrong {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+
+        /* ==========================================================================
+           BOTONERA DE LOS 6 TIPOS DE ÁNGULOS CON INDICADOR DE SONIDO
+           ========================================================================== */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .angle-btn {
+            border: none;
+            border-radius: 18px;
+            padding: 11px 10px;
+            color: white;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            position: relative;
+            transition: transform 0.1s, filter 0.15s;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.28);
+        }
+
+        .angle-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+        }
+
+        .angle-btn:disabled {
+            cursor: default;
+            opacity: 0.72;
+        }
+
+        .angle-btn .btn-title {
+            font-size: 1.08rem;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .angle-btn .btn-desc {
+            font-size: 0.76rem;
+            font-weight: 700;
+            opacity: 0.94;
+            background: rgba(0, 0, 0, 0.18);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* Colores distintivos para cada botón de ángulo */
+        .btn-agudo {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            box-shadow: 0 5px 0 #0369a1;
+        }
+        .btn-recto {
+            background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+            box-shadow: 0 5px 0 #15803d;
+        }
+        .btn-obtuso {
+            background: linear-gradient(180deg, #fb923c 0%, #ea580c 100%);
+            box-shadow: 0 5px 0 #c2410c;
+        }
+        .btn-llano {
+            background: linear-gradient(180deg, #c084fc 0%, #9333ea 100%);
+            box-shadow: 0 5px 0 #6b21a8;
+        }
+        .btn-consecutivos {
+            background: linear-gradient(180deg, #f472b6 0%, #db2777 100%);
+            box-shadow: 0 5px 0 #9d174d;
+        }
+        .btn-adyacentes {
+            background: linear-gradient(180deg, #2dd4bf 0%, #0d9488 100%);
+            box-shadow: 0 5px 0 #115e59;
+        }
+
+        /* Animaciones de acierto/error en los botones */
+        .angle-btn.correct-choice {
+            outline: 4px solid #facc15;
+            transform: scale(1.04);
+            opacity: 1 !important;
+            z-index: 3;
+        }
+
+        .angle-btn.wrong-choice {
+            filter: grayscale(0.5);
+            animation: shake 0.35s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* ==========================================================================
+           MODAL DE CAMBIO DE TURNO Y PODIO DE RESULTADOS
+           ========================================================================== */
+        .turn-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+        }
+
+        .turn-overlay.show {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .turn-modal {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: var(--shadow-pop);
+            border: 4px solid var(--accent-yellow);
+        }
+
+        .turn-modal .big-avatar {
+            font-size: 4rem;
+            margin-bottom: 8px;
+            display: inline-block;
+            animation: bounce 0.8s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        /* Tabla de resultados finales */
+        .podium-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .podium-player {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 3px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 12px 14px;
+        }
+
+        .podium-player.winner {
+            background: #fef9c3;
+            border-color: #eab308;
+        }
+
+        /* Lienzo de confeti para celebrar al final */
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lienzo superpuesto para efectos de confeti al acertar o ganar -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <div class="app-container">
+
+        <!-- ======================================================================
+             PANTALLA 1: MENÚ DE INICIO Y CONFIGURACIÓN
+             ====================================================================== -->
+        <section id="startScreen" class="screen active">
+            <div class="hero-header">
+                <div class="hero-title">📐 ¡Super Ángulos! 🎵</div>
+                <p class="hero-subtitle">Aprende los ángulos jugando y escuchando sus sonidos</p>
+            </div>
+
+            <div class="card">
+                <span class="section-label">👥 ¿Cuántos jugadores?</span>
+                <div class="mode-selector">
+                    <button type="button" class="toggle-btn selected" id="mode1P" onclick="selectPlayerMode(1)">
+                        <span class="emoji">🚀</span>
+                        <span>1 Jugador</span>
+                    </button>
+                    <button type="button" class="toggle-btn" id="mode2P" onclick="selectPlayerMode(2)">
+                        <span class="emoji">⚔️</span>
+                        <span>2 Jugadores</span>
+                    </button>
+                </div>
+
+                <!-- Nombres y avatares (toca el emoji para cambiar de personaje) -->
+                <span class="section-label">🦸 Elige tu avatar y nombre</span>
+                <div class="players-setup">
+                    <div class="player-input-row">
+                        <button type="button" class="avatar-btn" id="avatarBtn1" onclick="cycleAvatar(0)" title="Cambiar personaje">🦊</button>
+                        <input type="text" id="player1Name" class="player-name-input" value="Jugador 1" maxlength="14" placeholder="Nombre Jugador 1">
+                    </div>
+                    <div class="player-input-row" id="player2SetupRow" style="display: none;">
+                        <button type="button" class="avatar-btn" id="avatarBtn2" onclick="cycleAvatar(1)" title="Cambiar personaje">🐼</button>
+                        <input type="text" id="player2Name" class="player-name-input" value="Jugador 2" maxlength="14" placeholder="Nombre Jugador 2">
+                    </div>
+                </div>
+
+                <!-- Selector de rondas (12 por defecto para cada jugador como se pidió) -->
+                <span class="section-label">🔄 Rondas por jugador</span>
+                <div class="rounds-selector">
+                    <button type="button" class="toggle-btn" id="rounds6" onclick="selectRounds(6)">
+                        <span>6 Rondas</span>
+                        <small style="font-size:0.72rem; opacity:0.75;">Rápido</small>
+                    </button>
+                    <button type="button" class="toggle-btn" id="rounds10" onclick="selectRounds(10)">
+                        <span>10 Rondas</span>
+                        <small style="font-size:0.72rem; opacity:0.75;">Medio</small>
+                    </button>
+                    <button type="button" class="toggle-btn selected" id="rounds12" onclick="selectRounds(12)">
+                        <span>12 Rondas</span>
+                        <small style="font-size:0.72rem; opacity:0.75;">¡Clásico!</small>
+                    </button>
+                </div>
+
+                <button type="button" class="btn-primary" onclick="startGame()">
+                    <span>🎮 ¡Empezar a Jugar!</span>
+                </button>
+            </div>
+
+            <!-- Tarjeta del Laboratorio Musical de Ángulos para practicar antes de jugar -->
+            <div class="card" style="padding: 12px 14px;">
+                <span class="section-label" style="margin-bottom: 6px;">🎹 Escucha cómo suena cada ángulo</span>
+                <p style="font-size: 0.82rem; text-align: center; color: #475569; margin-bottom: 10px;">
+                    Toca cualquier botón en el Laboratorio para ver un ejemplo y oír su sonido educativo (agudo, grave, recto...).
+                </p>
+                <button type="button" class="btn-secondary" onclick="openLabScreen()">
+                    <span>🔊 Laboratorio de Ángulos y Sonidos</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PANTALLA 2: PANTALLA DE JUEGO PRINCIPAL
+             ====================================================================== -->
+        <section id="gameScreen" class="screen">
+            <div class="game-topbar">
+                <button type="button" class="icon-btn" onclick="goHome()">🏠 Inicio</button>
+                <div class="round-pill" id="roundIndicator">Ronda 1 / 12</div>
+                <button type="button" class="icon-btn" id="soundToggleBtn" onclick="toggleMute()">🔊</button>
+            </div>
+
+            <!-- Marcador de puntos y turno activo -->
+            <div class="scoreboard single-player" id="scoreboardContainer">
+                <div class="score-card active-turn" id="scoreCardP1">
+                    <div class="score-player-info">
+                        <span id="scoreAvatarP1">🦊</span>
+                        <span id="scoreNameP1">Jugador 1</span>
+                    </div>
+                    <div class="score-points" id="scorePointsP1">0 pts</div>
+                </div>
+                <div class="score-card" id="scoreCardP2" style="display: none;">
+                    <div class="score-player-info">
+                        <span id="scoreAvatarP2">🐼</span>
+                        <span id="scoreNameP2">Jugador 2</span>
+                    </div>
+                    <div class="score-points" id="scorePointsP2">0 pts</div>
+                </div>
+            </div>
+
+            <!-- Lienzo donde se dibuja el ángulo misterioso -->
+            <div class="canvas-wrapper">
+                <div class="turn-banner" id="turnBannerText">
+                    🎯 Turno de Jugador 1: ¿Qué ángulo es?
+                </div>
+                <canvas id="angleCanvas" width="340" height="215"></canvas>
+                <div class="feedback-banner" id="feedbackBanner">
+                    👂 ¡Toca una respuesta y escucha su sonido!
+                </div>
+            </div>
+
+            <!-- Los 6 botones de respuesta con refuerzo sonoro educativo -->
+            <div class="options-grid" id="optionsGrid">
+                <button type="button" class="angle-btn btn-agudo" data-type="agudo" onclick="handleAnswer('agudo', this)">
+                    <span class="btn-title">🐦 Agudo</span>
+                    <span class="btn-desc">&lt; 90º (ej. 40º) · Sonido Agudo</span>
+                </button>
+                <button type="button" class="angle-btn btn-recto" data-type="recto" onclick="handleAnswer('recto', this)">
+                    <span class="btn-title">📐 Recto</span>
+                    <span class="btn-desc">= 90º · Esquina Cuadrada</span>
+                </button>
+                <button type="button" class="angle-btn btn-obtuso" data-type="obtuso" onclick="handleAnswer('obtuso', this)">
+                    <span class="btn-title">🐘 Obtuso</span>
+                    <span class="btn-desc">&gt; 90º (ej. 120º) · Sonido Grave</span>
+                </button>
+                <button type="button" class="angle-btn btn-llano" data-type="llano" onclick="handleAnswer('llano', this)">
+                    <span class="btn-title">➖ Llano</span>
+                    <span class="btn-desc">= 180º · Línea Plana</span>
+                </button>
+                <button type="button" class="angle-btn btn-consecutivos" data-type="consecutivos" onclick="handleAnswer('consecutivos', this)">
+                    <span class="btn-title">👯 Consecutivos</span>
+                    <span class="btn-desc">Juntos (comparten 1 lado)</span>
+                </button>
+                <button type="button" class="angle-btn btn-adyacentes" data-type="adyacentes" onclick="handleAnswer('adyacentes', this)">
+                    <span class="btn-title">🌈 Adyacentes</span>
+                    <span class="btn-desc">Juntos y suman 180º</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PANTALLA 3: LABORATORIO INTERACTIVO DE ÁNGULOS Y SONIDOS
+             ====================================================================== -->
+        <section id="labScreen" class="screen">
+            <div class="game-topbar">
+                <button type="button" class="icon-btn" onclick="goHome()">⬅️ Volver</button>
+                <div class="round-pill">🎹 Modo Aprender</div>
+                <button type="button" class="icon-btn" onclick="replayCurrentAngleSound()">🔁 Oír</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <div class="turn-banner" id="labTitleBanner">
+                    🔍 Toca un botón abajo para ver y escuchar el ángulo
+                </div>
+                <canvas id="labCanvas" width="340" height="215"></canvas>
+                <div class="feedback-banner correct" id="labDescriptionBanner">
+                    Cada ángulo tiene su propio sonido musical para recordarlo mejor.
+                </div>
+            </div>
+
+            <div class="options-grid">
+                <button type="button" class="angle-btn btn-agudo" onclick="previewAngleInLab('agudo')">
+                    <span class="btn-title">🐦 Agudo (40º)</span>
+                    <span class="btn-desc">Sonido finito y AGUDO</span>
+                </button>
+                <button type="button" class="angle-btn btn-recto" onclick="previewAngleInLab('recto')">
+                    <span class="btn-title">📐 Recto (90º)</span>
+                    <span class="btn-desc">Sonido firme en forma de L</span>
+                </button>
+                <button type="button" class="angle-btn btn-obtuso" onclick="previewAngleInLab('obtuso')">
+                    <span class="btn-title">🐘 Obtuso (120º)</span>
+                    <span class="btn-desc">Sonido gordito y GRAVE</span>
+                </button>
+                <button type="button" class="angle-btn btn-llano" onclick="previewAngleInLab('llano')">
+                    <span class="btn-title">➖ Llano (180º)</span>
+                    <span class="btn-desc">Sonido plano y largo</span>
+                </button>
+                <button type="button" class="angle-btn btn-consecutivos" onclick="previewAngleInLab('consecutivos')">
+                    <span class="btn-title">👯 Consecutivos</span>
+                    <span class="btn-desc">2 notas seguidas vecinas</span>
+                </button>
+                <button type="button" class="angle-btn btn-adyacentes" onclick="previewAngleInLab('adyacentes')">
+                    <span class="btn-title">🌈 Adyacentes</span>
+                    <span class="btn-desc">2 notas que cierran en 180º</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             PANTALLA 4: PODIO Y RESULTADOS FINALES
+             ====================================================================== -->
+        <section id="resultScreen" class="screen">
+            <div class="hero-header">
+                <div class="hero-title">🏆 ¡Partida Terminada!</div>
+                <p class="hero-subtitle" id="winnerSubtitle">¡Qué gran trabajo con los ángulos!</p>
+            </div>
+
+            <div class="card">
+                <div class="podium-box" id="podiumContainer"></div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+                    <button type="button" class="btn-primary" onclick="startGame()">
+                        <span>🔄 ¡Jugar Otra Vez!</span>
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="goHome()">
+                        <span>⚙️ Cambiar Jugadores / Rondas</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Modal intermedio para avisar del cambio de turno en modo 2 jugadores -->
+    <div class="turn-overlay" id="turnModalOverlay">
+        <div class="turn-modal">
+            <div class="big-avatar" id="modalAvatar">🐼</div>
+            <h2 id="modalTitle" style="font-size: 1.5rem; margin-bottom: 6px;">¡Turno de Jugador 2!</h2>
+            <p id="modalSubtitle" style="color: #64748b; font-weight: 700; margin-bottom: 16px;">
+                Ronda 1 de 12 · ¡Prepárate!
+            </p>
+            <button type="button" class="btn-primary" onclick="dismissTurnModal()">
+                <span>👍 ¡Estoy Listo!</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. MOTOR DE SONIDO EDUCATIVO (WEB AUDIO API - SIN ARCHIVOS EXTERNOS)
+           ==========================================================================
+           Diseñado específicamente para reforzar el concepto geométrico con el oído:
+           - AGUDO (40º): Frecuencias muy altas y cristalinas (sonido agudo de pajarito/flauta).
+           - OBTUSO (120º): Frecuencias muy bajas y profundas (sonido grave de tuba/elefante).
+           - RECTO (90º): Acorde medio exacto de dos notas perpendiculares (campana firme).
+           - LLANO (180º): Nota continua y plana con barrido horizontal suave.
+           - CONSECUTIVOS: Dos notas saltarinas seguidas ("un ángulo al lado del otro").
+           - ADYACENTES: Dos notas seguidas que se unen formando un acorde llano de 180º.
+        */
+        let audioCtx = null;
+        let isMuted = false;
+
+        /**
+         * Inicializa o reanuda el contexto de audio del navegador móvil tras el primer toque.
+         */
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        /**
+         * Activa o desactiva el silencio general de la aplicación.
+         */
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        /**
+         * Reproduce un tono elemental con envolvente suave para no saturar el altavoz del móvil.
+         */
+        function playTone({ freq, endFreq = null, type = 'sine', startTime = 0, duration = 0.25, volume = 0.28 }) {
+            if (isMuted) return;
+            ensureAudioContext();
+
+            const now = audioCtx.currentTime + startTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            if (endFreq !== null) {
+                osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+            }
+
+            // Envolvente de volumen (ataque rápido y caída progresiva)
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(volume, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration + 0.02);
+        }
+
+        /**
+         * Reproduce el sonido característico de cada tipo de ángulo para reforzar el aprendizaje.
+         * @param {string} angleType - 'agudo', 'recto', 'obtuso', 'llano', 'consecutivos', 'adyacentes'
+         */
+        function playAngleEducationalSound(angleType) {
+            if (isMuted) return;
+            ensureAudioContext();
+
+            switch (angleType) {
+                case 'agudo':
+                    // SONIDO AGUDO: Notas muy altas y brillantes (1318 Hz -> 1760 Hz -> 2093 Hz)
+                    playTone({ freq: 1318.5, endFreq: 1760, type: 'triangle', startTime: 0, duration: 0.14, volume: 0.3 });
+                    playTone({ freq: 1760, endFreq: 2093, type: 'sine', startTime: 0.12, duration: 0.22, volume: 0.32 });
+                    break;
+
+                case 'obtuso':
+                    // SONIDO GRAVE: Notas muy bajas, gorditas y profundas (130 Hz -> 98 Hz -> 82 Hz)
+                    playTone({ freq: 130.8, endFreq: 98.0, type: 'sawtooth', startTime: 0, duration: 0.22, volume: 0.26 });
+                    playTone({ freq: 98.0, endFreq: 73.4, type: 'triangle', startTime: 0.18, duration: 0.35, volume: 0.38 });
+                    break;
+
+                case 'recto':
+                    // SONIDO RECTO (90º): Dos golpes exactos y firmes en ángulo recto (440 Hz -> 659 Hz)
+                    playTone({ freq: 440, type: 'square', startTime: 0, duration: 0.13, volume: 0.2 });
+                    playTone({ freq: 659.25, type: 'square', startTime: 0.14, duration: 0.24, volume: 0.22 });
+                    break;
+
+                case 'llano':
+                    // SONIDO LLANO (180º): Sonido largo, horizontal y completamente plano (330 Hz constante)
+                    playTone({ freq: 329.63, endFreq: 329.63, type: 'sine', startTime: 0, duration: 0.48, volume: 0.32 });
+                    playTone({ freq: 659.25, endFreq: 659.25, type: 'triangle', startTime: 0, duration: 0.48, volume: 0.14 });
+                    break;
+
+                case 'consecutivos':
+                    // SONIDO CONSECUTIVOS: Dos notas vecinas que suenan una justo después de la otra (Do -> Mi)
+                    playTone({ freq: 523.25, type: 'triangle', startTime: 0, duration: 0.16, volume: 0.28 });
+                    playTone({ freq: 659.25, type: 'triangle', startTime: 0.17, duration: 0.22, volume: 0.28 });
+                    break;
+
+                case 'adyacentes':
+                    // SONIDO ADYACENTES: Dos notas vecinas que terminan fundidas en un acorde llano de 180º
+                    playTone({ freq: 440, type: 'triangle', startTime: 0, duration: 0.14, volume: 0.26 });
+                    playTone({ freq: 554.37, type: 'triangle', startTime: 0.14, duration: 0.14, volume: 0.26 });
+                    playTone({ freq: 659.25, type: 'sine', startTime: 0.28, duration: 0.32, volume: 0.3 });
+                    break;
+            }
+        }
+
+        /**
+         * Sonido extra de celebración cuando el jugador acierta o sonido suave cuando falla.
+         */
+        function playFeedbackJingle(isCorrect) {
+            if (isMuted) return;
+            ensureAudioContext();
+
+            if (isCorrect) {
+                playTone({ freq: 587.33, type: 'sine', startTime: 0.38, duration: 0.12, volume: 0.22 });
+                playTone({ freq: 880.0, type: 'sine', startTime: 0.49, duration: 0.25, volume: 0.26 });
+            } else {
+                playTone({ freq: 240, endFreq: 160, type: 'sawtooth', startTime: 0.42, duration: 0.28, volume: 0.18 });
+            }
+        }
+
+        /* ==========================================================================
+           2. ESTADO DEL JUEGO Y VARIABLES DE PARTIDA
+           ========================================================================== */
+        const AVATARS = ['🦊', '🐼', '🦁', '🐸', '🦄', '🦖', '🐙', '🦉', '🐯', '🐨'];
+
+        let gameState = {
+            numPlayers: 1,
+            maxRounds: 12,       // 12 rondas para cada jugador por defecto
+            currentRound: 1,     // De 1 hasta maxRounds
+            currentPlayerIdx: 0, // 0 = Jugador 1, 1 = Jugador 2
+            players: [
+                { name: 'Jugador 1', avatar: '🦊', score: 0, hits: 0 },
+                { name: 'Jugador 2', avatar: '🐼', score: 0, hits: 0 }
+            ],
+            currentQuestion: null,
+            isAnsweringAllowed: false,
+            questionPools: [[], []] // Mazos equilibrados para Jugador 1 y Jugador 2
+        };
+
+        let currentLabAngle = null;
+
+        /* ==========================================================================
+           3. CONFIGURACIÓN INICIAL (MENÚ PRINCIPAL)
+           ========================================================================== */
+        function selectPlayerMode(count) {
+            gameState.numPlayers = count;
+            document.getElementById('mode1P').classList.toggle('selected', count === 1);
+            document.getElementById('mode2P').classList.toggle('selected', count === 2);
+            document.getElementById('player2SetupRow').style.display = count === 2 ? 'flex' : 'none';
+            playTone({ freq: count === 1 ? 520 : 640, duration: 0.1, volume: 0.18 });
+        }
+
+        function selectRounds(rounds) {
+            gameState.maxRounds = rounds;
+            document.getElementById('rounds6').classList.toggle('selected', rounds === 6);
+            document.getElementById('rounds10').classList.toggle('selected', rounds === 10);
+            document.getElementById('rounds12').classList.toggle('selected', rounds === 12);
+            playTone({ freq: 700, duration: 0.1, volume: 0.18 });
+        }
+
+        function cycleAvatar(playerIndex) {
+            const currentAvatar = gameState.players[playerIndex].avatar;
+            const nextIdx = (AVATARS.indexOf(currentAvatar) + 1) % AVATARS.length;
+            gameState.players[playerIndex].avatar = AVATARS[nextIdx];
+            document.getElementById(playerIndex === 0 ? 'avatarBtn1' : 'avatarBtn2').textContent = AVATARS[nextIdx];
+            playTone({ freq: 600 + nextIdx * 45, duration: 0.09, volume: 0.2 });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function goHome() {
+            showScreen('startScreen');
+        }
+
+        /* ==========================================================================
+           4. GENERADOR DE PREGUNTAS GEOMÉTRICAS (LOS 6 TIPOS DE ÁNGULOS)
+           ==========================================================================
+           Crea mazos equilibrados para que en las 12 rondas cada niño vea todos los tipos
+           de ángulos (Agudo 40º, Obtuso 120º, Recto 90º, Llano 180º, Consecutivos y Adyacentes).
+        */
+        function buildBalancedPool(totalRounds) {
+            const allTypes = ['agudo', 'recto', 'obtuso', 'llano', 'consecutivos', 'adyacentes'];
+            const pool = [];
+            for (let i = 0; i < totalRounds; i++) {
+                pool.push(allTypes[i % allTypes.length]);
+            }
+            // Barajado aleatorio tipo Fisher-Yates
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            return pool;
+        }
+
+        /**
+         * Crea los datos matemáticos exactos de un ángulo según su tipo.
+         * Prioriza 40º en agudo y 120º en obtuso como pidió el usuario, con ligeras variaciones.
+         */
+        function createAngleData(type, forceCanonical = false) {
+            // Rotación base suave para que sea visualmente claro en el móvil
+            const baseRotation = forceCanonical ? 0 : [0, 10, -10, 15][Math.floor(Math.random() * 4)];
+
+            switch (type) {
+                case 'agudo': {
+                    // Destacamos 40º como ejemplo principal
+                    const degreesList = forceCanonical ? [40] : [40, 40, 35, 45, 50];
+                    const deg = degreesList[Math.floor(Math.random() * degreesList.length)];
+                    return {
+                        type: 'agudo',
+                        title: `Ángulo Agudo (${deg}º)`,
+                        degrees1: deg,
+                        baseAngle: baseRotation,
+                        explanation: `¡Es AGUDO (${deg}º)! Mide menos de 90º y suena finito y agudo 🐦.`
+                    };
+                }
+                case 'recto': {
+                    return {
+                        type: 'recto',
+                        title: 'Ángulo Recto (90º)',
+                        degrees1: 90,
+                        baseAngle: baseRotation,
+                        explanation: '¡Es RECTO (90º)! Forma una esquina cuadrada perfecta 📐.'
+                    };
+                }
+                case 'obtuso': {
+                    // Destacamos 120º como ejemplo principal
+                    const degreesList = forceCanonical ? [120] : [120, 120, 115, 130, 135];
+                    const deg = degreesList[Math.floor(Math.random() * degreesList.length)];
+                    return {
+                        type: 'obtuso',
+                        title: `Ángulo Obtuso (${deg}º)`,
+                        degrees1: deg,
+                        baseAngle: baseRotation,
+                        explanation: `¡Es OBTUSO (${deg}º)! Es más abierto de 90º y suena grave 🐘.`
+                    };
+                }
+                case 'llano': {
+                    return {
+                        type: 'llano',
+                        title: 'Ángulo Llano (180º)',
+                        degrees1: 180,
+                        baseAngle: 0,
+                        explanation: '¡Es LLANO (180º)! Es completamente plano como el horizonte ➖.'
+                    };
+                }
+                case 'consecutivos': {
+                    // Dos ángulos pegados que comparten vértice y un lado común, pero NO suman 180º
+                    const pairs = forceCanonical ? [[40, 55]] : [[40, 50], [35, 45], [45, 65], [50, 60]];
+                    const [deg1, deg2] = pairs[Math.floor(Math.random() * pairs.length)];
+                    return {
+                        type: 'consecutivos',
+                        title: `Ángulos Consecutivos (${deg1}º y ${deg2}º)`,
+                        degrees1: deg1,
+                        degrees2: deg2,
+                        baseAngle: baseRotation,
+                        explanation: `¡Son CONSECUTIVOS (${deg1}º + ${deg2}º)! Comparten un lado pero no llegan a 180º 👯.`
+                    };
+                }
+                case 'adyacentes': {
+                    // Dos ángulos consecutivos cuyos lados exteriores forman una línea recta (suman 180º: ej. 60º y 120º o 40º y 140º)
+                    const pairs = forceCanonical ? [[60, 120]] : [[60, 120], [40, 140], [50, 130], [70, 110]];
+                    const [deg1, deg2] = pairs[Math.floor(Math.random() * pairs.length)];
+                    return {
+                        type: 'adyacentes',
+                        title: `Ángulos Adyacentes (${deg1}º + ${deg2}º = 180º)`,
+                        degrees1: deg1,
+                        degrees2: deg2,
+                        baseAngle: 0,
+                        explanation: `¡Son ADYACENTES! Están juntos y entre los dos forman un llano de 180º (${deg1}º + ${deg2}º) 🌈.`
+                    };
+                }
+            }
+        }
+
+        /* ==========================================================================
+           5. DIBUJO EN CANVAS DE LOS ÁNGULOS (CLAROS, COLORIDOS Y DIDÁCTICOS)
+           ========================================================================== */
+        function drawAngleOnCanvas(canvasId, angleData) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Cuadrícula escolar muy sutil de fondo
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let x = 20; x < w; x += 25) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (let y = 20; y < h; y += 25) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            // Posición del vértice según el tipo de ángulo para aprovechar bien el espacio
+            const isWide = ['llano', 'adyacentes', 'obtuso'].includes(angleData.type);
+            const vx = isWide ? w * 0.5 : w * 0.36;
+            const vy = h * 0.76;
+            const rayLength = 122;
+
+            // Función auxiliar para pasar de grados geométricos (antihorario) a radianes de Canvas
+            const toRad = (deg) => -(deg * Math.PI) / 180;
+
+            const startDeg = angleData.baseAngle || 0;
+            const midDeg = startDeg + angleData.degrees1;
+
+            // --- CASO 1: ÁNGULOS SIMPLES (AGUDO, RECTO, OBTUSO, LLANO) ---
+            if (['agudo', 'recto', 'obtuso', 'llano'].includes(angleData.type)) {
+                const arcRadius = 54;
+
+                // Relleno del sector angular
+                ctx.beginPath();
+                ctx.moveTo(vx, vy);
+                ctx.arc(vx, vy, arcRadius, toRad(startDeg), toRad(midDeg), true);
+                ctx.closePath();
+
+                if (angleData.type === 'recto') {
+                    // El ángulo recto lleva su clásico cuadradito de 90º en lugar de arco curvo
+                    const sqSize = 34;
+                    const r1 = toRad(startDeg);
+                    const r2 = toRad(midDeg);
+                    const p1x = vx + sqSize * Math.cos(r1);
+                    const p1y = vy + sqSize * Math.sin(r1);
+                    const p2x = vx + sqSize * Math.cos(r2);
+                    const p2y = vy + sqSize * Math.sin(r2);
+                    const pCornerX = p1x + sqSize * Math.cos(r2);
+                    const pCornerY = p1y + sqSize * Math.sin(r2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(vx, vy);
+                    ctx.lineTo(p1x, p1y);
+                    ctx.lineTo(pCornerX, pCornerY);
+                    ctx.lineTo(p2x, p2y);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.25)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#16a34a';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                } else {
+                    const colorMap = {
+                        agudo: { fill: 'rgba(56, 189, 248, 0.28)', stroke: '#0284c7' },
+                        obtuso: { fill: 'rgba(251, 146, 60, 0.28)', stroke: '#ea580c' },
+                        llano: { fill: 'rgba(192, 132, 252, 0.28)', stroke: '#9333ea' }
+                    };
+                    ctx.fillStyle = colorMap[angleData.type].fill;
+                    ctx.fill();
+                    ctx.strokeStyle = colorMap[angleData.type].stroke;
+                    ctx.lineWidth = 3.5;
+                    ctx.stroke();
+                }
+
+                // Dibujar las dos semirrectas (lados del ángulo)
+                drawRay(ctx, vx, vy, startDeg, rayLength, '#1e293b');
+                drawRay(ctx, vx, vy, midDeg, rayLength, '#1e293b');
+
+                // Etiqueta de grados (ej. "40º", "90º", "120º", "180º")
+                const labelDeg = startDeg + angleData.degrees1 / 2;
+                const labelDist = angleData.type === 'recto' ? 62 : 74;
+                drawDegreeBadge(
+                    ctx,
+                    vx + labelDist * Math.cos(toRad(labelDeg)),
+                    vy + labelDist * Math.sin(toRad(labelDeg)),
+                    `${angleData.degrees1}º`,
+                    '#0f172a'
+                );
+            }
+
+            // --- CASO 2: ÁNGULOS DOBLES (CONSECUTIVOS Y ADYACENTES) ---
+            if (['consecutivos', 'adyacentes'].includes(angleData.type)) {
+                const endDeg = midDeg + angleData.degrees2;
+                const arc1 = 50;
+                const arc2 = 64;
+
+                // Primer ángulo (α) en rosa vibrante
+                ctx.beginPath();
+                ctx.moveTo(vx, vy);
+                ctx.arc(vx, vy, arc1, toRad(startDeg), toRad(midDeg), true);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(244, 114, 182, 0.32)';
+                ctx.fill();
+                ctx.strokeStyle = '#db2777';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Segundo ángulo (β) en turquesa vibrante
+                ctx.beginPath();
+                ctx.moveTo(vx, vy);
+                ctx.arc(vx, vy, arc2, toRad(midDeg), toRad(endDeg), true);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(45, 212, 191, 0.32)';
+                ctx.fill();
+                ctx.strokeStyle = '#0d9488';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Los 3 lados: exterior 1, lado común central (en color destacado) y exterior 2
+                drawRay(ctx, vx, vy, startDeg, rayLength, '#1e293b');
+                drawRay(ctx, vx, vy, endDeg, rayLength, '#1e293b');
+                drawRay(ctx, vx, vy, midDeg, rayLength, '#e11d48'); // Lado compartido en rojo/rosa
+
+                // Etiquetas de ambos ángulos
+                const l1Deg = startDeg + angleData.degrees1 / 2;
+                const l2Deg = midDeg + angleData.degrees2 / 2;
+                drawDegreeBadge(
+                    ctx,
+                    vx + 72 * Math.cos(toRad(l1Deg)),
+                    vy + 72 * Math.sin(toRad(l1Deg)),
+                    `${angleData.degrees1}º`,
+                    '#be185d'
+                );
+                drawDegreeBadge(
+                    ctx,
+                    vx + 84 * Math.cos(toRad(l2Deg)),
+                    vy + 84 * Math.sin(toRad(l2Deg)),
+                    `${angleData.degrees2}º`,
+                    '#0f766e'
+                );
+            }
+
+            // Punto del vértice bien visible
+            ctx.beginPath();
+            ctx.arc(vx, vy, 6.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#facc15';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#0f172a';
+            ctx.stroke();
+        }
+
+        /**
+         * Dibuja una semirrecta con punta de flecha al final.
+         */
+        function drawRay(ctx, vx, vy, deg, length, color) {
+            const rad = -(deg * Math.PI) / 180;
+            const ex = vx + length * Math.cos(rad);
+            const ey = vy + length * Math.sin(rad);
+
+            ctx.beginPath();
+            ctx.moveTo(vx, vy);
+            ctx.lineTo(ex, ey);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4.5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Punta de flecha
+            const headLen = 11;
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex - headLen * Math.cos(rad - 0.4), ey - headLen * Math.sin(rad - 0.4));
+            ctx.lineTo(ex - headLen * Math.cos(rad + 0.4), ey - headLen * Math.sin(rad + 0.4));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        /**
+         * Dibuja una píldora con los grados del ángulo para que el niño identifique 40º, 90º, 120º, 180º...
+         */
+        function drawDegreeBadge(ctx, x, y, text, bgColor) {
+            ctx.save();
+            ctx.font = '900 14px "Segoe UI", sans-serif';
+            const textWidth = ctx.measureText(text).width;
+            const padX = 8;
+            const boxW = textWidth + padX * 2;
+            const boxH = 24;
+
+            ctx.fillStyle = bgColor;
+            ctx.beginPath();
+            ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 8);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y + 1);
+            ctx.restore();
+        }
+
+        /* ==========================================================================
+           6. FLUJO DE LA PARTIDA (ALTERNANDO JUGADOR 1 Y JUGADOR 2 EN CADA RONDA)
+           ========================================================================== */
+        function startGame() {
+            ensureAudioContext();
+
+            // Guardar nombres personalizados escritos por el usuario
+            const p1Input = document.getElementById('player1Name').value.trim() || 'Jugador 1';
+            const p2Input = document.getElementById('player2Name').value.trim() || 'Jugador 2';
+
+            gameState.players[0].name = p1Input;
+            gameState.players[0].score = 0;
+            gameState.players[0].hits = 0;
+
+            gameState.players[1].name = p2Input;
+            gameState.players[1].score = 0;
+            gameState.players[1].hits = 0;
+
+            gameState.currentRound = 1;
+            gameState.currentPlayerIdx = 0;
+
+            // Generar mazos equilibrados para las 12 rondas de cada jugador
+            gameState.questionPools[0] = buildBalancedPool(gameState.maxRounds);
+            gameState.questionPools[1] = buildBalancedPool(gameState.maxRounds);
+
+            // Configurar el marcador visual según 1 o 2 jugadores
+            const scoreboard = document.getElementById('scoreboardContainer');
+            const cardP2 = document.getElementById('scoreCardP2');
+            if (gameState.numPlayers === 1) {
+                scoreboard.classList.add('single-player');
+                cardP2.style.display = 'none';
+            } else {
+                scoreboard.classList.remove('single-player');
+                cardP2.style.display = 'flex';
+            }
+
+            updateScoreboardUI();
+            showScreen('gameScreen');
+            loadTurnQuestion(false);
+        }
+
+        /**
+         * Actualiza los puntos, nombres, avatares y el indicador de ronda actual.
+         */
+        function updateScoreboardUI() {
+            document.getElementById('roundIndicator').textContent =
+                `Ronda ${gameState.currentRound} / ${gameState.maxRounds}`;
+
+            // Jugador 1
+            document.getElementById('scoreAvatarP1').textContent = gameState.players[0].avatar;
+            document.getElementById('scoreNameP1').textContent = gameState.players[0].name;
+            document.getElementById('scorePointsP1').textContent = `${gameState.players[0].score} pts`;
+            document.getElementById('scoreCardP1').classList.toggle('active-turn', gameState.currentPlayerIdx === 0);
+
+            // Jugador 2
+            document.getElementById('scoreAvatarP2').textContent = gameState.players[1].avatar;
+            document.getElementById('scoreNameP2').textContent = gameState.players[1].name;
+            document.getElementById('scorePointsP2').textContent = `${gameState.players[1].score} pts`;
+            document.getElementById('scoreCardP2').classList.toggle('active-turn', gameState.currentPlayerIdx === 1);
+        }
+
+        /**
+         * Carga el ángulo correspondiente al turno del jugador actual.
+         */
+        function loadTurnQuestion(showModalForTurn = false) {
+            updateScoreboardUI();
+
+            const pIdx = gameState.currentPlayerIdx;
+            const activePlayer = gameState.players[pIdx];
+            const angleType = gameState.questionPools[pIdx][gameState.currentRound - 1];
+
+            gameState.currentQuestion = createAngleData(angleType);
+            gameState.isAnsweringAllowed = true;
+
+            // Restaurar estado de los 6 botones
+            document.querySelectorAll('#optionsGrid .angle-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('correct-choice', 'wrong-choice');
+            });
+
+            // Actualizar textos de ayuda
+            document.getElementById('turnBannerText').textContent =
+                `${activePlayer.avatar} Turno de ${activePlayer.name}: ¿Qué ángulo es?`;
+
+            const fb = document.getElementById('feedbackBanner');
+            fb.className = 'feedback-banner';
+            fb.textContent = '👂 ¡Elige el botón correcto y escucha cómo suena!';
+
+            drawAngleOnCanvas('angleCanvas', gameState.currentQuestion);
+
+            // En modo 2 jugadores, mostrar aviso claro cuando cambia de jugador
+            if (showModalForTurn && gameState.numPlayers === 2) {
+                document.getElementById('modalAvatar').textContent = activePlayer.avatar;
+                document.getElementById('modalTitle').textContent = `¡Turno de ${activePlayer.name}!`;
+                document.getElementById('modalSubtitle').textContent =
+                    `Ronda ${gameState.currentRound} de ${gameState.maxRounds} · ¡Pásale el móvil!`;
+                document.getElementById('turnModalOverlay').classList.add('show');
+            }
+        }
+
+        function dismissTurnModal() {
+            document.getElementById('turnModalOverlay').classList.remove('show');
+            playTone({ freq: 660, duration: 0.1, volume: 0.2 });
+        }
+
+        /**
+         * Procesa la respuesta del niño cuando pulsa uno de los 6 botones de ángulo.
+         * Siempre reproduce primero el sonido educativo del botón pulsado (agudo, grave, recto...).
+         */
+        function handleAnswer(chosenType, btnElement) {
+            if (!gameState.isAnsweringAllowed) return;
+            gameState.isAnsweringAllowed = false;
+
+            // 1. Reproducir SIEMPRE el sonido educativo del ángulo elegido para reforzar el concepto
+            playAngleEducationalSound(chosenType);
+
+            const correctType = gameState.currentQuestion.type;
+            const isCorrect = (chosenType === correctType);
+            const activePlayer = gameState.players[gameState.currentPlayerIdx];
+            const fb = document.getElementById('feedbackBanner');
+
+            // Deshabilitar botones durante la explicación breve
+            document.querySelectorAll('#optionsGrid .angle-btn').forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.type === correctType) {
+                    btn.classList.add('correct-choice');
+                }
+            });
+
+            if (isCorrect) {
+                activePlayer.score += 10;
+                activePlayer.hits += 1;
+                fb.className = 'feedback-banner correct';
+                fb.textContent = `✅ ${gameState.currentQuestion.explanation}`;
+                playFeedbackJingle(true);
+                launchMiniConfetti();
+            } else {
+                btnElement.classList.add('wrong-choice');
+                fb.className = 'feedback-banner wrong';
+                fb.textContent = `❌ Era ${gameState.currentQuestion.explanation}`;
+                playFeedbackJingle(false);
+                // Hacer sonar el ángulo correcto un instante después para que aprenda la diferencia
+                setTimeout(() => playAngleEducationalSound(correctType), 650);
+            }
+
+            updateScoreboardUI();
+
+            // Avanzar al siguiente turno tras 2.1 segundos
+            setTimeout(() => {
+                advanceTurn();
+            }, 2100);
+        }
+
+        /**
+         * Gestiona el orden exacto pedido:
+         * Ronda 1: Jugador 1 -> Jugador 2
+         * Ronda 2: Jugador 1 -> Jugador 2 ... hasta completar las 12 rondas de cada uno.
+         */
+        function advanceTurn() {
+            if (gameState.numPlayers === 2) {
+                if (gameState.currentPlayerIdx === 0) {
+                    // Pasa a Jugador 2 dentro de la misma ronda
+                    gameState.currentPlayerIdx = 1;
+                    loadTurnQuestion(true);
+                    return;
+                } else {
+                    // Jugador 2 terminó la ronda; pasamos a la siguiente ronda con el Jugador 1
+                    gameState.currentPlayerIdx = 0;
+                    gameState.currentRound += 1;
+                }
+            } else {
+                // Modo 1 Jugador: avanza directamente de ronda
+                gameState.currentRound += 1;
+            }
+
+            // Comprobar si hemos terminado todas las rondas (ej. las 12 rondas)
+            if (gameState.currentRound > gameState.maxRounds) {
+                showFinalResults();
+            } else {
+                loadTurnQuestion(gameState.numPlayers === 2);
+            }
+        }
+
+        /* ==========================================================================
+           7. PANTALLA DE PODIO Y RESULTADOS FINALES
+           ========================================================================== */
+        function showFinalResults() {
+            showScreen('resultScreen');
+            launchBigConfetti();
+
+            // Fanfarria de victoria
+            playTone({ freq: 523.25, startTime: 0, duration: 0.15 });
+            playTone({ freq: 659.25, startTime: 0.15, duration: 0.15 });
+            playTone({ freq: 783.99, startTime: 0.30, duration: 0.15 });
+            playTone({ freq: 1046.5, startTime: 0.45, duration: 0.4 });
+
+            const podium = document.getElementById('podiumContainer');
+            const subtitle = document.getElementById('winnerSubtitle');
+            podium.innerHTML = '';
+
+            const p1 = gameState.players[0];
+            const p2 = gameState.players[1];
+
+            if (gameState.numPlayers === 1) {
+                subtitle.textContent = `¡Has acertado ${p1.hits} de ${gameState.maxRounds} ángulos!`;
+                podium.innerHTML = `
+                    <div class="podium-player winner">
+                        <div style="display:flex; align-items:center; gap:10px; font-weight:900; font-size:1.15rem;">
+                            <span style="font-size:2rem;">${p1.avatar}</span>
+                            <div>
+                                <div>${p1.name}</div>
+                                <small style="color:#475569;">Aciertos: ${p1.hits} / ${gameState.maxRounds}</small>
+                            </div>
+                        </div>
+                        <div style="font-weight:900; font-size:1.3rem; color:#ca8a04;">🏆 ${p1.score} pts</div>
+                    </div>
+                `;
+            } else {
+                let winnerText = '¡Empate de campeones! 🤝';
+                if (p1.score > p2.score) winnerText = `¡Gana ${p1.avatar} ${p1.name}! 🎉`;
+                if (p2.score > p1.score) winnerText = `¡Gana ${p2.avatar} ${p2.name}! 🎉`;
+                subtitle.textContent = winnerText;
+
+                const p1Win = p1.score >= p2.score;
+                const p2Win = p2.score >= p1.score;
+
+                podium.innerHTML = `
+                    <div class="podium-player ${p1Win ? 'winner' : ''}">
+                        <div style="display:flex; align-items:center; gap:10px; font-weight:900; font-size:1.1rem;">
+                            <span style="font-size:1.9rem;">${p1.avatar}</span>
+                            <div>
+                                <div>${p1.name} ${p1Win ? '👑' : ''}</div>
+                                <small style="color:#475569;">Aciertos: ${p1.hits} / ${gameState.maxRounds}</small>
+                            </div>
+                        </div>
+                        <div style="font-weight:900; font-size:1.2rem;">${p1.score} pts</div>
+                    </div>
+                    <div class="podium-player ${p2Win ? 'winner' : ''}">
+                        <div style="display:flex; align-items:center; gap:10px; font-weight:900; font-size:1.1rem;">
+                            <span style="font-size:1.9rem;">${p2.avatar}</span>
+                            <div>
+                                <div>${p2.name} ${p2Win ? '👑' : ''}</div>
+                                <small style="color:#475569;">Aciertos: ${p2.hits} / ${gameState.maxRounds}</small>
+                            </div>
+                        </div>
+                        <div style="font-weight:900; font-size:1.2rem;">${p2.score} pts</div>
+                    </div>
+                `;
+            }
+        }
+
+        /* ==========================================================================
+           8. LABORATORIO DE ÁNGULOS Y SONIDOS (MODO APRENDER SIN PRISA)
+           ========================================================================== */
+        function openLabScreen() {
+            ensureAudioContext();
+            showScreen('labScreen');
+            previewAngleInLab('agudo');
+        }
+
+        function previewAngleInLab(type) {
+            currentLabAngle = createAngleData(type, true);
+            drawAngleOnCanvas('labCanvas', currentLabAngle);
+            document.getElementById('labTitleBanner').textContent = `📐 ${currentLabAngle.title}`;
+            document.getElementById('labDescriptionBanner').textContent = currentLabAngle.explanation;
+            playAngleEducationalSound(type);
+        }
+
+        function replayCurrentAngleSound() {
+            if (currentLabAngle) {
+                playAngleEducationalSound(currentLabAngle.type);
+            }
+        }
+
+        /* ==========================================================================
+           9. MOTOR LIGERO DE CONFETI PARA CELEBRAR ACIERTOS
+           ========================================================================== */
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const cCtx = confettiCanvas.getContext('2d');
+        let particles = [];
+        let animId = null;
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function spawnConfetti(count) {
+            const colors = ['#facc15', '#4ade80', '#38bdf8', '#f472b6', '#fb923c', '#a855f7'];
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: window.innerWidth / 2 + (Math.random() - 0.5) * 140,
+                    y: window.innerHeight * 0.45,
+                    vx: (Math.random() - 0.5) * 11,
+                    vy: -Math.random() * 10 - 4,
+                    size: Math.random() * 8 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 70 + Math.random() * 30
+                });
+            }
+            if (!animId) animateConfetti();
+        }
+
+        function launchMiniConfetti() { spawnConfetti(28); }
+        function launchBigConfetti() { spawnConfetti(85); }
+
+        function animateConfetti() {
+            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.32; // gravedad
+                p.life -= 1;
+                cCtx.fillStyle = p.color;
+                cCtx.fillRect(p.x, p.y, p.size, p.size);
+            });
+            particles = particles.filter(p => p.life > 0);
+            if (particles.length > 0) {
+                animId = requestAnimationFrame(animateConfetti);
+            } else {
+                cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                animId = null;
+            }
+        }
+    </script>
+</body>
+</html>
